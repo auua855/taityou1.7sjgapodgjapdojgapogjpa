@@ -625,7 +625,7 @@
         
         // 背景色の適用（通院記録が最優先）
         if (record && record.hospital_visit === '診察') {
-          cell.classList.add('bg-blue-100', 'dark:bg-blue-950/40', 'border-blue-200', 'dark:border-blue-900/50');
+          cell.classList.add('bg-red-100', 'dark:bg-red-950/40', 'border-red-200', 'dark:border-red-900/50');
         } else if (record && record.hospital_visit === '薬のみ') {
           cell.classList.add('bg-green-100', 'dark:bg-green-950/40', 'border-green-200', 'dark:border-green-900/50');
         } else if (planStart && planEnd && cellDate >= planStart && cellDate <= planEnd) {
