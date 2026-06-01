@@ -112,8 +112,16 @@
 
     <main class="p-5 space-y-6">
       
+      <!-- 今日の記録トグルボタン -->
+      <button id="btn-toggle-record-form" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white font-bold py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 flex justify-center items-center gap-2 transform active:scale-[0.98]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        今日の記録をつける
+      </button>
+      
       <!-- 入力フォーム -->
-      <section class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+      <section id="record-form-section" class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-all duration-300 hidden">
         <h2 class="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -391,6 +399,35 @@
       const pinScreen = document.getElementById('pin-screen');
       const appContent = document.getElementById('app-content');
       
+      // トグルボタンの処理
+      const btnToggleRecord = document.getElementById('btn-toggle-record-form');
+      const recordFormSection = document.getElementById('record-form-section');
+      
+      window.toggleRecordForm = function(forceOpen = null) {
+        const isOpen = !recordFormSection.classList.contains('hidden');
+        const shouldOpen = forceOpen !== null ? forceOpen : !isOpen;
+        
+        if (shouldOpen) {
+          recordFormSection.classList.remove('hidden');
+          btnToggleRecord.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+            </svg>
+            記録フォームを閉じる
+          `;
+        } else {
+          recordFormSection.classList.add('hidden');
+          btnToggleRecord.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            今日の記録をつける
+          `;
+        }
+      };
+      
+      btnToggleRecord.addEventListener('click', () => toggleRecordForm());
+
       if (localStorage.getItem(UNLOCKED_KEY) === 'true') {
         // すでに解除されている場合
         pinScreen.style.display = 'none';
@@ -573,6 +610,10 @@
       document.getElementById('hospital-visit').value = '';
       document.getElementById('sleep-hour').value = '';
       document.getElementById('sleep-minute').value = '';
+      
+      if (window.toggleRecordForm) {
+        window.toggleRecordForm(false);
+      }
     });
 
     // --- カレンダー描画処理 ---
@@ -623,12 +664,15 @@
         
         const record = records[dateStr];
         
-        // 背景色の適用（通院記録が最優先）
+        // 枠線の適用（通院記録：診察＝ビビッド赤枠、薬のみ＝ビビッド緑枠）
         if (record && record.hospital_visit === '診察') {
-          cell.classList.add('bg-red-100', 'dark:bg-red-950/40', 'border-red-200', 'dark:border-red-900/50');
+          cell.classList.add('border-2', 'border-red-500', 'dark:border-red-500', '!border-red-500');
         } else if (record && record.hospital_visit === '薬のみ') {
-          cell.classList.add('bg-green-100', 'dark:bg-green-950/40', 'border-green-200', 'dark:border-green-900/50');
-        } else if (planStart && planEnd && cellDate >= planStart && cellDate <= planEnd) {
+          cell.classList.add('border-2', 'border-green-500', 'dark:border-green-500', '!border-green-500');
+        }
+        
+        // 背景色の適用（服薬予定期間）
+        if (planStart && planEnd && cellDate >= planStart && cellDate <= planEnd) {
           cell.classList.add('med-period');
         }
 
@@ -812,6 +856,9 @@
       }
       
       closeModal('detail-modal');
+      if (window.toggleRecordForm) {
+        window.toggleRecordForm(true);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
